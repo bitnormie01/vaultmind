@@ -1,0 +1,11 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.24;
+
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+
+/// @title IERC20Extended
+/// @notice Extended ERC20 interface with decimals
+interface IERC20Extended is IERC20 {
+    function decimals() external view returns (uint8);
+    function symbol() external view returns (string memory);
+}

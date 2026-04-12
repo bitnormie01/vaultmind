@@ -1,0 +1,30 @@
+# Dependencies
+node_modules/
+.next/
+out/
+dist/
+
+# Environment
+.env
+.env.*
+**/.env
+**/.env.*
+
+# Foundry
+contracts/cache/
+contracts/out/
+contracts/lib/
+
+# Logs
+*.log
+logs/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo

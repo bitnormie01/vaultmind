@@ -1,0 +1,13 @@
+# Compiler output
+cache/
+out/
+
+# Dependencies
+lib/
+
+# Environment
+.env
+
+# Coverage
+lcov.info
+coverage/
