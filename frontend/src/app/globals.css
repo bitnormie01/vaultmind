@@ -1,72 +1,67 @@
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap');
 @import "tailwindcss";
 
 /* ═══════════════════════════════════════════════════════════════════
-   TAILWIND V4 THEME  —  replaces tailwind.config.ts "extend" block
-   All custom tokens MUST be declared here with @theme in v4.
+   TAILWIND V4 THEME  —  Precision Industrial Design System
+   VaultMind — Bloomberg Terminal meets modern DeFi
    ═══════════════════════════════════════════════════════════════════ */
 @theme {
-  /* Fonts */
-  --font-sans:  'Outfit', system-ui, sans-serif;
-  --font-mono:  'JetBrains Mono', ui-monospace, monospace;
+  /* ─── Typography ─── */
+  --font-display: 'Space Grotesk', system-ui, sans-serif;
+  --font-mono:    'JetBrains Mono', ui-monospace, monospace;
+  --font-sans:    'Space Grotesk', system-ui, sans-serif;
 
-  /* Brand palette - Enhanced nuance */
-  --color-brand-50:   #f0f7ff;
-  --color-brand-100:  #e0effe;
-  --color-brand-200:  #bae0fd;
-  --color-brand-300:  #7cc8fb;
-  --color-brand-400:  #38abf8;
-  --color-brand-500:  #0e91e9;
-  --color-brand-600:  #0274ca;
-  --color-brand-700:  #035da4;
-  --color-brand-800:  #075086;
-  --color-brand-900:  #0b436f;
-  --color-brand-950:  #072b4a;
+  /* ─── Core palette — Precision Industrial ─── */
+  --color-base-bg:        #0a0a0f;
+  --color-base-surface:   #0e0e16;
+  --color-base-elevated:  #12121c;
+  --color-base-card:      rgba(14, 14, 22, 0.7);
+  --color-base-border:    rgba(255, 255, 255, 0.06);
+  --color-base-border-2:  rgba(255, 255, 255, 0.10);
+  --color-base-muted:     #6b7280;
+  --color-base-subtle:    #1f2937;
+  --color-base-text:      #e5e7eb;
+  --color-base-text-dim:  #9ca3af;
 
-  /* Vault surface palette - Deep space aesthetic */
-  --color-vault-bg:       #020408;
-  --color-vault-surface:  #060912;
-  --color-vault-border:   rgba(255, 255, 255, 0.08);
-  --color-vault-card:     rgba(13, 18, 30, 0.4);
-  --color-vault-card-2:   rgba(17, 24, 42, 0.6);
-  --color-vault-muted:    #94a3b8;
-  --color-vault-subtle:   #1e293b;
+  /* ─── Accent — Electric Cyan ─── */
+  --color-cyan-50:   #ecfeff;
+  --color-cyan-100:  #cffafe;
+  --color-cyan-200:  #a5f3fc;
+  --color-cyan-300:  #67e8f9;
+  --color-cyan-400:  #00d4ff;
+  --color-cyan-500:  #06b6d4;
+  --color-cyan-600:  #0891b2;
+  --color-cyan-700:  #0e7490;
+  --color-cyan-800:  #155e75;
+  --color-cyan-900:  #164e63;
 
-  /* Status colours */
-  --color-status-safe:    #10b981;
-  --color-status-warning: #f59e0b;
-  --color-status-danger:  #ef4444;
-  --color-status-info:    #3b82f6;
+  /* ─── Status — Amber for warnings, green for safe ─── */
+  --color-safe:     #22c55e;
+  --color-safe-dim: rgba(34, 197, 94, 0.15);
+  --color-amber:    #f59e0b;
+  --color-amber-dim: rgba(245, 158, 11, 0.15);
+  --color-danger:   #ef4444;
+  --color-danger-dim: rgba(239, 68, 68, 0.12);
 
-  /* Background images */
-  --background-image-grid-pattern:
-    linear-gradient(rgba(56,171,248,0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(56,171,248,0.03) 1px, transparent 1px);
-  --background-image-glow-brand:
-    radial-gradient(ellipse 80% 50% at 50% -20%, rgba(14,145,233,0.15), transparent);
-  --background-image-aura-flow:
-    radial-gradient(circle at 0% 0%, rgba(56,171,248,0.08) 0%, transparent 50%),
-    radial-gradient(circle at 100% 100%, rgba(16,185,129,0.05) 0%, transparent 50%);
+  /* ─── Animations ─── */
+  --animate-slide-up:   slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+  --animate-fade-in:    fadeIn 0.4s ease-out both;
 
-  /* Animations */
-  --animate-pulse-slow:   pulse 4s cubic-bezier(0.4,0,0.6,1) infinite;
-  --animate-glow-pulse:   glowPulse 3s ease-in-out infinite alternate;
-  --animate-slide-up:     slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
-  --animate-fade-in:      fadeIn 0.4s ease-out both;
-  --animate-float:        float 6s ease-in-out infinite;
-
-  /* Keyframes */
-  @keyframes float {
-    0%, 100% { transform: translateY(0); }
-    50%      { transform: translateY(-10px); }
-  }
-  @keyframes glowPulse {
-    from { opacity: 0.4; }
-    to   { opacity: 0.8; }
-  }
   @keyframes slideUp {
-    from { opacity: 0; transform: translateY(20px); }
+    from { opacity: 0; transform: translateY(16px); }
     to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+  @keyframes pulse-dot {
+    0%, 100% { opacity: 1; }
+    50%      { opacity: 0.4; }
+  }
+  @keyframes countdown-tick {
+    0%, 100% { opacity: 1; }
+    50%      { opacity: 0.7; }
   }
 }
 
@@ -75,59 +70,67 @@
    ═══════════════════════════════════════════════════════════════════ */
 
 body {
-  background-color: var(--color-vault-bg);
-  color: #f8fafc;
+  background-color: var(--color-base-bg);
+  color: var(--color-base-text);
   font-family: var(--font-sans);
   overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 /* ═══════════════════════════════════════════════════════════════════
-   PREMIUM UTILITIES
+   DESIGN SYSTEM UTILITIES
    ═══════════════════════════════════════════════════════════════════ */
 
-.bento-card {
-  @apply relative rounded-[2rem] border border-vault-border bg-vault-card backdrop-blur-xl overflow-hidden transition-all duration-500;
-  box-shadow: 
-    0 4px 24px -1px rgba(0, 0, 0, 0.2),
-    inset 0 1px 1px rgba(255, 255, 255, 0.05);
+/* Panel — primary container with subtle border */
+.panel {
+  @apply relative bg-base-card border border-base-border rounded-lg overflow-hidden;
+  backdrop-filter: blur(12px);
 }
 
-.bento-card:hover {
-  @apply border-brand-500/30 -translate-y-1;
-  box-shadow: 
-    0 20px 40px -12px rgba(0, 0, 0, 0.4),
-    0 0 20px -5px rgba(14, 145, 233, 0.2),
-    inset 0 1px 1px rgba(255, 255, 255, 0.08);
+.panel:hover {
+  border-color: rgba(255, 255, 255, 0.10);
 }
 
-.glass-nav {
-  @apply bg-vault-bg/60 backdrop-blur-2xl border-b border-vault-border sticky top-0 z-50;
+/* Navigation bar — frosted glass */
+.nav-bar {
+  @apply bg-base-bg/80 border-b border-base-border sticky top-0 z-50;
+  backdrop-filter: blur(20px);
 }
 
-.gradient-text {
-  @apply bg-clip-text text-transparent bg-gradient-to-br from-brand-300 via-brand-500 to-status-safe;
+/* Metric card — left-border accent */
+.metric-card {
+  @apply relative bg-base-card border border-base-border rounded-lg overflow-hidden transition-all duration-200;
+  backdrop-filter: blur(8px);
+}
+.metric-card:hover {
+  border-color: rgba(255, 255, 255, 0.10);
 }
 
-.aura-bg {
-  @apply fixed inset-0 pointer-events-none;
-  background: var(--background-image-aura-flow);
-  filter: blur(80px);
+/* Status pulse animation */
+.status-dot {
+  animation: pulse-dot 2s ease-in-out infinite;
 }
 
-/* Status Pulse */
-.status-pulse {
-  animation: statusPulse 2s ease-in-out infinite;
-}
-@keyframes statusPulse {
-  0%, 100% { transform: scale(1); opacity: 1; }
-  50%      { transform: scale(1.1); opacity: 0.5; }
+/* Monospace data values */
+.data-value {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
 }
 
-/* Custom Scrollbar */
-::-webkit-scrollbar { width: 5px; }
+/* Label style — small, uppercase, muted */
+.data-label {
+  @apply text-[11px] font-medium uppercase tracking-wider;
+  color: var(--color-base-muted);
+  font-family: var(--font-sans);
+}
+
+/* Custom Scrollbar — minimal */
+::-webkit-scrollbar { width: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { 
-  background: var(--color-vault-subtle);
+::-webkit-scrollbar-thumb {
+  background: var(--color-base-subtle);
   border-radius: 10px;
 }
-::-webkit-scrollbar-thumb:hover { background: var(--color-brand-600); }
+::-webkit-scrollbar-thumb:hover { background: var(--color-cyan-700); }

@@ -22,11 +22,13 @@ import dotenv from "dotenv";
 import { createLogger } from "./utils/logger.js";
 import { PortfolioMonitor } from "./onchainos/portfolio.js";
 import { SecuritySimulator } from "./security/simulator.js";
+import { GatewayClient } from "./onchainos/gateway.js";
 import { HealthFactorAnalyzer } from "./quant/healthFactor.js";
 import { TickRangeAnalyzer } from "./quant/tickRange.js";
 import { OKXDexClient } from "./onchainos/dex.js";
 import { CognitiveEngine } from "./ai/cognitiveEngine.js";
 import { X402PaymentProtocol } from "./onchainos/x402.js";
+import { execCommand } from "./utils/cli.js";
 
 dotenv.config();
 
@@ -58,8 +60,8 @@ const CONFIG = {
   // X Layer v6 rate limit: 3 req/sec. This gives us ~2.5 req/sec with headroom.
   rpcDelayMs:            400,
 
-  // Agent loop poll interval: every 12 seconds (≈ 1 X Layer block)
-  pollIntervalMs:        12_000,
+  // Agent loop poll interval: every 5 minutes
+  pollIntervalMs:        300_000,
 
   // Health factor alert threshold — rescue fires below this value
   healthFactorThreshold: parseFloat(process.env.HEALTH_FACTOR_THRESHOLD || "1.3"),
@@ -124,6 +126,7 @@ class VaultMindAgent {
   // Sub-modules
   private portfolioMonitor: PortfolioMonitor;
   private securitySimulator: SecuritySimulator;
+  private gatewayClient: GatewayClient;
   private hfAnalyzer: HealthFactorAnalyzer;
   private tickAnalyzer: TickRangeAnalyzer;
   private okxDex: OKXDexClient;
@@ -169,6 +172,7 @@ class VaultMindAgent {
     // @ts-ignore
     this.portfolioMonitor = new PortfolioMonitor(this.publicClient);
     this.securitySimulator = new SecuritySimulator();
+    this.gatewayClient = new GatewayClient();
     this.hfAnalyzer = new HealthFactorAnalyzer();
     this.tickAnalyzer = new TickRangeAnalyzer();
     this.okxDex = new OKXDexClient();
@@ -409,11 +413,20 @@ class VaultMindAgent {
     // MANDATORY: simulate via unified Guardian Protocol BEFORE broadcasting
     const simulation = await this.securitySimulator.simulate(txPayload, actionContext);
 
-    if (!simulation.success) {
+    // Also run onchainos gateway simulate for belt-and-suspenders
+    const gatewaySimResult = await this.gatewayClient.simulateTransaction({
+      from: this.account.address,
+      to: txPayload.to,
+      data: txPayload.data,
+      chainId: txPayload.chainId,
+    });
+
+    if (!simulation.success || !gatewaySimResult.success) {
       this.state.droppedBySimulation++;
       this.logger.warn("🚫 Simulation FAILED — tx DROPPED (safety guarantee)", {
         type: action.type,
-        reason: simulation.reason,
+        securityReason: simulation.reason,
+        gatewayReason: gatewaySimResult.reason,
         totalDropped: this.state.droppedBySimulation,
       });
       return;
@@ -427,19 +440,39 @@ class VaultMindAgent {
 
     this.logger.info(`🚀 Broadcasting with x402 Zero-Gas authorization (Signature: ${x402Auth.signature.substring(0, 10)}...)`);
 
-    // Broadcast the transaction via viem WalletClient
+    // Broadcast the transaction via OKX Agentic Wallet (TEE signing)
     try {
-      const hash = await this.walletClient.sendTransaction({
-        account: this.account,
-        to: txPayload.to as `0x${string}`,
-        data: txPayload.data as `0x${string}`,
-        chain: xLayer,
+      this.logger.info("🔐 Triggering OKX Agentic Wallet TEE signing via onchainos CLI...");
+
+      // Use onchainos wallet contract-call for TEE-signed execution
+      const execResult = await this.gatewayClient.executeTransaction({
+        from: this.account.address,
+        to: txPayload.to,
+        data: txPayload.data,
+        chainId: txPayload.chainId,
       });
-      
-      this.logger.info(`🚀 Transaction broadcasted! Hash: ${hash}`);
+
+      let hash: `0x${string}` | null = null;
+
+      if (execResult.txHash && execResult.txHash.startsWith("0x") && execResult.txHash.length === 66) {
+        hash = execResult.txHash as `0x${string}`;
+      } else {
+        // Fallback: raw onchainos agentic-wallet execute command
+        this.logger.info("🔄 Falling back to onchainos okx-agentic-wallet execute...");
+        const cmd = `onchainos wallet contract-call --to ${txPayload.to} --chain xlayer --input-data ${txPayload.data} --amt 0 --force`;
+        const stdout = await execCommand(cmd);
+        const hashMatch = stdout.match(/0x[a-fA-F0-9]{64}/);
+        hash = hashMatch ? (hashMatch[0] as `0x${string}`) : null;
+      }
+
+      if (!hash) {
+        throw new Error("No txHash returned from Agentic Wallet.");
+      }
+
+      this.logger.info(`🚀 Transaction broadcasted via OKX Agentic Wallet! Hash: ${hash}`);
 
       const receipt = await this.rpcCall("waitForTx", () =>
-        this.publicClient.waitForTransactionReceipt({ hash })
+        this.publicClient.waitForTransactionReceipt({ hash: hash! })
       );
 
       if (receipt.status === 'success') {

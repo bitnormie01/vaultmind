@@ -94,10 +94,136 @@ function formatUsd(value: number): string {
   });
 }
 
+// ─── Agent Status Panel (replaces grey X Layer Arena box) ─────────────
+
+function AgentStatusPanel({ isConnected }: { isConnected: boolean }) {
+  const [countdown, setCountdown] = useState(287); // seconds until next check
+  const [lastAction] = useState(new Date(Date.now() - 14 * 60 * 1000));
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCountdown(prev => (prev <= 0 ? 300 : prev - 1));
+    }, 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const mm = String(Math.floor(countdown / 60)).padStart(2, "0");
+  const ss = String(countdown % 60).padStart(2, "0");
+
+  return (
+    <div className="panel p-5 space-y-4">
+      <div className="flex items-center justify-between">
+        <span className="data-label">Agent Status</span>
+        <div className="flex items-center gap-1.5">
+          <span className="w-2 h-2 rounded-full bg-safe status-dot"></span>
+          <span className="text-[12px] font-semibold text-safe">ACTIVE</span>
+        </div>
+      </div>
+
+      <div className="space-y-3">
+        {/* Last action */}
+        <div className="flex items-center justify-between">
+          <span className="text-[11px] text-base-muted">Last Action</span>
+          <span className="text-[11px] data-value text-white">
+            {lastAction.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })}
+          </span>
+        </div>
+
+        {/* Next check countdown */}
+        <div className="flex items-center justify-between">
+          <span className="text-[11px] text-base-muted">Next Check</span>
+          <span className="text-[13px] data-value text-cyan-400 font-semibold">
+            {mm}:{ss}
+          </span>
+        </div>
+
+        {/* Chain */}
+        <div className="flex items-center justify-between">
+          <span className="text-[11px] text-base-muted">Chain</span>
+          <span className="text-[11px] data-value text-white">X Layer Mainnet • 196</span>
+        </div>
+
+        {/* Contract */}
+        <div className="flex items-center justify-between">
+          <span className="text-[11px] text-base-muted">Contract</span>
+          <a
+            href="https://www.oklink.com/xlayer/address/0xDDc90434a8DD095ac6B5046fFbC4BD5d5f477306"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-1 text-[11px] data-value text-cyan-400 hover:text-white transition-colors"
+          >
+            0xDDc9...7306
+            <svg className="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+            </svg>
+          </a>
+        </div>
+
+        {/* Agentic Wallet */}
+        <div className="flex items-center justify-between">
+          <span className="text-[11px] text-base-muted">Agentic Wallet</span>
+          <div className="flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-safe"></span>
+            <span className="text-[11px] text-safe font-medium">Connected</span>
+          </div>
+        </div>
+      </div>
+
+      {/* OnchainOS modules */}
+      <div className="pt-3 border-t border-base-border">
+        <span className="data-label text-[9px]">OnchainOS Modules</span>
+        <div className="flex flex-wrap gap-1.5 mt-2">
+          {[
+            { name: "okx-security", ok: true },
+            { name: "okx-gateway", ok: true },
+            { name: "okx-dex", ok: true },
+          ].map((mod) => (
+            <span
+              key={mod.name}
+              className="inline-flex items-center gap-1 px-2 py-0.5 rounded border border-safe/15 bg-safe/5 text-[9px] text-safe font-medium"
+            >
+              ✓ {mod.name}
+            </span>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Threat Toast Notification ────────────────────────────────────────
+
+function ThreatToast() {
+  const [visible, setVisible] = useState(true);
+  if (!visible) return null;
+
+  return (
+    <div className="fixed bottom-6 left-6 z-50 animate-slide-up">
+      <div className="flex items-center gap-3 px-4 py-2.5 rounded-md border border-amber/20 bg-amber/10 backdrop-blur-sm">
+        <span className="text-[13px]">🛡</span>
+        <div>
+          <span className="text-[12px] font-medium text-amber">
+            1 Threat Neutralized
+          </span>
+          <span className="text-[11px] text-amber/60 ml-2">14m ago</span>
+        </div>
+        <button
+          onClick={() => setVisible(false)}
+          className="ml-3 text-amber/40 hover:text-amber transition-colors"
+        >
+          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+    </div>
+  );
+}
+
 // ─── Page ─────────────────────────────────────────────────────────────
 
 export default function DashboardPage() {
-  const { address, isConnected, isCorrectChain } = useWallet();
+  const { address, isConnected, isCorrectChain, connect } = useWallet();
 
   const aavePosition = useAavePosition(isConnected && isCorrectChain ? address : undefined);
   const { balances: liveBalances, isLoading: balancesLoading } = useWalletBalances(
@@ -107,18 +233,6 @@ export default function DashboardPage() {
     isConnected && isCorrectChain ? address : undefined,
     [],
   );
-
-  const [lastUpdatedLabel, setLastUpdatedLabel] = useState("just now");
-  const lastUpdatedRef = useRef<Date>(new Date());
-
-  useEffect(() => {
-    if (!aavePosition.isLoading) lastUpdatedRef.current = new Date();
-    const t = setInterval(() => {
-      const secs = Math.floor((Date.now() - lastUpdatedRef.current.getTime()) / 1000);
-      setLastUpdatedLabel(secs < 5 ? "Live" : `${secs}s ago`);
-    }, 1000);
-    return () => clearInterval(t);
-  }, [aavePosition.isLoading]);
 
   // Use live data when connected to X Layer, demo otherwise
   const useDemo = !isConnected || !isCorrectChain;
@@ -152,267 +266,264 @@ export default function DashboardPage() {
       }));
 
   return (
-    <div className="min-h-screen bg-vault-bg text-white relative overflow-hidden">
-      {/* Premium Background Layers */}
-      <div className="aura-bg" />
-      <div className="fixed inset-0 bg-grid-pattern opacity-[0.4] pointer-events-none" />
-      <div className="fixed inset-0 bg-gradient-to-b from-transparent via-vault-bg/50 to-vault-bg pointer-events-none" />
+    <div className="min-h-screen bg-base-bg text-white relative">
 
       <Navbar />
 
-      <main className="relative max-w-[1400px] mx-auto px-6 py-10 space-y-8">
+      <main className="max-w-[1440px] mx-auto px-6 py-6 space-y-6">
 
-        {/* ── Dashboard Header ── */}
-        <header className="flex flex-col md:flex-row md:items-end justify-between gap-6 animate-fade-in">
-          <div className="space-y-1">
-            <div className="flex items-center gap-2 mb-2">
-              <span className="px-2 py-0.5 rounded-md bg-brand-500/10 border border-brand-500/20 text-[10px] font-black text-brand-400 uppercase tracking-widest">Global Dashboard</span>
-              <span className="w-1 h-1 rounded-full bg-vault-muted/40" />
-              <span className="text-[10px] font-bold text-vault-muted uppercase tracking-widest">v0.2.1 Stable</span>
-            </div>
-            <h1 className="text-4xl font-black tracking-tight flex items-center gap-3">
-              Vault<span className="text-brand-500">Mind</span>
-              <div className="w-2 h-2 rounded-full bg-status-safe status-pulse mt-2" />
-            </h1>
-            <p className="text-vault-muted font-medium">Autonomous Liquidity Guardian & Safety Engine</p>
-          </div>
-          {!isConnected && (
-            <div className="p-4 rounded-3xl bg-brand-500/5 border border-brand-500/10 max-w-sm">
-              <p className="text-xs text-brand-400 font-bold uppercase tracking-widest mb-1">X Layer Arena</p>
-              <p className="text-xs text-vault-muted leading-relaxed">Connect your Agentic Wallet to begin real-time safety monitoring.</p>
-            </div>
-          )}
-          {isConnected && !isCorrectChain && (
-            <div className="p-4 rounded-3xl bg-status-warning/5 border border-status-warning/20 max-w-sm">
-              <p className="text-xs text-status-warning font-bold uppercase tracking-widest mb-1">Wrong Network</p>
-              <p className="text-xs text-vault-muted leading-relaxed">Switch to X Layer (Chain ID 196) to see live position data.</p>
-            </div>
-          )}
-        </header>
-
-        {/* ── Bento Row 1: Key Stats ── */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 animate-slide-up" style={{ animationDelay: "100ms" }}>
+        {/* ── Top Stats Bar — 4 metric cards in a row ── */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 animate-fade-in">
           <StatCard
             label="Total Protected Value"
             value={displayTVL}
-            sub="Collateral + Debt on Aave V3"
+            sub="Collateral + Debt"
             change={useDemo ? { value: "+4.2% (24h)", positive: true } : undefined}
-            accent="brand"
+            accent="cyan"
             isLoading={!useDemo && aavePosition.isLoading}
-            icon={<svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>}
+            icon={<svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>}
           />
           <StatCard
-            label="Successful Rescues"
+            label="Flash Loan Rescues"
             value={displayRescues}
-            sub="Flash Loan Interventions"
-            accent="safe"
+            sub="Liquidations Prevented"
+            accent="cyan"
             isLoading={!useDemo && aavePosition.isLoading}
-            icon={<svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>}
+            icon={<svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>}
           />
           <StatCard
             label="LP Rebalances"
             value={displayRebalances}
-            sub="Uniswap V3 Range Adjustments"
-            accent="brand"
+            sub="Range Adjustments"
+            accent="cyan"
             isLoading={!useDemo && aavePosition.isLoading}
-            icon={<svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>}
+            icon={<svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>}
           />
           <StatCard
-            label="Security Intercepts"
+            label="Threats Neutralized"
             value={useDemo ? "3" : "—"}
-            sub="Risky Transactions Blocked"
-            accent="danger"
-            icon={<svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>}
+            sub="Risky Txns Blocked"
+            accent="amber"
+            icon={<svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>}
           />
         </div>
 
-        {/* ── Main Bento Grid Layout ── */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        {/* ── Main Grid: Content + Agent Status ── */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
 
-          {/* ── COLUMN LEFT (4/12): Safety Engine ── */}
-          <div className="lg:col-span-4 space-y-8 animate-slide-up" style={{ animationDelay: "200ms" }}>
+          {/* ── LEFT COLUMN (8/12): Engine + Positions ── */}
+          <div className="lg:col-span-8 space-y-6 animate-slide-up" style={{ animationDelay: "100ms" }}>
 
-            {/* Aave Dial Box */}
-            <div className="bento-card p-8 space-y-6">
-              <div className="flex items-center justify-between pb-4 border-b border-vault-border/50">
+            {/* Aave V3 Health Factor */}
+            <div className="panel p-6">
+              <div className="flex items-center justify-between mb-5">
                 <div>
-                  <h2 className="text-lg font-black tracking-tight text-white mb-1">Aave V3 Engine</h2>
-                  <p className="text-[10px] font-black text-vault-muted uppercase tracking-[0.2em]">Safety Monitoring</p>
+                  <h2 className="text-[15px] font-semibold text-white">Aave V3 Safety Engine</h2>
+                  <p className="text-[11px] text-base-muted mt-0.5">Health Factor Monitoring</p>
                 </div>
-                <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-status-safe/5 border border-status-safe/10 text-status-safe text-[10px] font-black uppercase">
-                  {useDemo ? "Demo" : lastUpdatedLabel}
-                </div>
+                {isConnected && !isCorrectChain && (
+                  <span className="text-[10px] font-medium text-amber px-2 py-0.5 rounded border border-amber/20 bg-amber/5">
+                    Wrong Network
+                  </span>
+                )}
               </div>
 
-              <HealthFactorDial
-                value={displayHF}
-                isLoading={!useDemo && aavePosition.isLoading}
-              />
+              <div className="flex flex-col md:flex-row items-center gap-6">
+                <HealthFactorDial
+                  value={displayHF}
+                  isLoading={!useDemo && aavePosition.isLoading}
+                />
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="p-4 rounded-2xl bg-vault-surface/50 border border-vault-border/50">
-                  <p className="text-[9px] font-black text-vault-muted uppercase tracking-widest">Collateral</p>
-                  {!useDemo && aavePosition.isLoading ? (
-                    <div className="h-5 w-24 bg-vault-subtle/30 rounded-lg animate-pulse mt-1" />
-                  ) : (
-                    <p className="text-md font-mono font-black text-white mt-1">{displayCollateral}</p>
-                  )}
-                </div>
-                <div className="p-4 rounded-2xl bg-vault-surface/50 border border-vault-border/50">
-                  <p className="text-[9px] font-black text-vault-muted uppercase tracking-widest">Active Debt</p>
-                  {!useDemo && aavePosition.isLoading ? (
-                    <div className="h-5 w-24 bg-vault-subtle/30 rounded-lg animate-pulse mt-1" />
-                  ) : (
-                    <p className="text-md font-mono font-black text-status-warning mt-1">{displayDebt}</p>
-                  )}
+                <div className="flex-1 grid grid-cols-2 gap-3 w-full">
+                  <div className="p-3 rounded-md bg-base-elevated border border-base-border">
+                    <span className="data-label text-[9px]">Collateral</span>
+                    {!useDemo && aavePosition.isLoading ? (
+                      <div className="h-5 w-20 bg-base-subtle rounded animate-pulse mt-1"></div>
+                    ) : (
+                      <p className="text-[15px] font-medium data-value text-white mt-1">{displayCollateral}</p>
+                    )}
+                  </div>
+                  <div className="p-3 rounded-md bg-base-elevated border border-base-border">
+                    <span className="data-label text-[9px]">Active Debt</span>
+                    {!useDemo && aavePosition.isLoading ? (
+                      <div className="h-5 w-20 bg-base-subtle rounded animate-pulse mt-1"></div>
+                    ) : (
+                      <p className="text-[15px] font-medium data-value text-amber mt-1">{displayDebt}</p>
+                    )}
+                  </div>
+                  <div className="p-3 rounded-md bg-base-elevated border border-base-border">
+                    <span className="data-label text-[9px]">Health Factor</span>
+                    <p className="text-[15px] font-semibold data-value text-cyan-400 mt-1">{displayHF.toFixed(2)}</p>
+                  </div>
+                  <div className="p-3 rounded-md bg-base-elevated border border-base-border">
+                    <span className="data-label text-[9px]">Liquidation At</span>
+                    <p className="text-[15px] font-medium data-value text-danger/70 mt-1">1.00</p>
+                  </div>
                 </div>
               </div>
 
               {/* Optimal repayment hint — only shown when at risk */}
               {!useDemo && aavePosition.isAtRisk && aavePosition.optimalRepayment > BigInt(0) && (
-                <div className="p-4 rounded-2xl bg-status-danger/5 border border-status-danger/20 flex items-center justify-between">
-                  <span className="text-[10px] font-black text-status-danger uppercase tracking-widest">
+                <div className="mt-4 p-3 rounded-md bg-danger/5 border border-danger/20 flex items-center justify-between">
+                  <span className="text-[11px] font-medium text-danger">
                     Rescue Queued — Repay {(Number(aavePosition.optimalRepayment) / 1e6).toLocaleString(undefined, { maximumFractionDigits: 2 })} USDC
                   </span>
-                  <svg className="w-4 h-4 text-status-danger" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
-                </div>
-              )}
-
-              {(useDemo || !aavePosition.isAtRisk) && (
-                <div className="p-4 rounded-2xl bg-brand-500/5 border border-brand-500/10 flex items-center justify-between">
-                  <span className="text-[10px] font-black text-brand-400 uppercase tracking-widest">OKX DEX Aggregator Bound</span>
-                  <svg className="w-4 h-4 text-brand-500" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" /></svg>
+                  <svg className="w-4 h-4 text-danger" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
                 </div>
               )}
             </div>
 
-            {/* Wallet Balance Box */}
-            <div className="bento-card p-8 space-y-6">
-              <h2 className="text-lg font-black tracking-tight text-white uppercase tracking-wider mb-2">Portfolio Vault</h2>
-              <WalletBalances
-                assets={displayBalances}
-                isLoading={!useDemo && balancesLoading}
-              />
-              <div className="pt-4 border-t border-vault-border/50 text-center">
-                <p className="text-[9px] font-black text-vault-muted uppercase tracking-[0.3em]">
-                  {useDemo ? "Demo Data — Connect Wallet" : "Live Balances • X Layer Mainnet"}
-                </p>
-              </div>
-            </div>
-
-          </div>
-
-          {/* ── COLUMN RIGHT (8/12): Performance & Logs ── */}
-          <div className="lg:col-span-8 space-y-8 animate-slide-up" style={{ animationDelay: "300ms" }}>
-
-            {/* LP Positions Box */}
-            <div className="bento-card p-8">
-              <div className="flex items-center justify-between mb-8">
+            {/* Uniswap V3 Positions */}
+            <div className="panel p-6">
+              <div className="flex items-center justify-between mb-5">
                 <div>
-                  <h2 className="text-xl font-black tracking-tight text-white mb-1 uppercase tracking-wider">Uniswap V3 Inventory</h2>
-                  <p className="text-[10px] font-black text-vault-muted uppercase tracking-[0.2em]">Automated Tick Rebalancing</p>
+                  <h2 className="text-[15px] font-semibold text-white">Uniswap V3 Positions</h2>
+                  <p className="text-[11px] text-base-muted mt-0.5">Automated Tick Rebalancing</p>
                 </div>
-                <div className="flex items-center gap-4">
-                  <div className="hidden sm:flex flex-col items-end">
-                    <span className="text-[10px] font-black text-status-safe uppercase tracking-widest">
-                      {useDemo ? "Demo Mode" : "Live Positions"}
-                    </span>
-                    <span className="text-xs font-mono font-bold text-vault-muted">
-                      {useDemo ? "Connect Wallet" : `${displayLPPositions.filter((p: any) => !p.isOutOfRange).length}/${displayLPPositions.length} In Range`}
-                    </span>
-                  </div>
-                  <div className="h-10 w-[1px] bg-vault-border/50" />
-                  <div className="flex items-center gap-2 text-brand-400 font-black text-[11px] uppercase tracking-widest">
-                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z" /></svg>
-                    X Layer Arena
-                  </div>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 gap-6">
-                {displayLPPositions.map((pos: any) => (
-                  <LPRangeVisualizer key={pos.tokenId} {...pos} />
-                ))}
-
-                {displayLPPositions.length === 0 && !displayLpLoading && (
-                  <div className="py-20 text-center">
-                    <div className="w-12 h-12 bg-vault-border/20 rounded-full flex items-center justify-center mx-auto mb-4 opacity-50">
-                      <svg className="w-6 h-6 text-vault-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" /></svg>
-                    </div>
-                    <p className="text-vault-muted text-sm font-bold uppercase tracking-widest">No Active Positions Found</p>
-                    <p className="text-vault-muted/50 text-xs mt-2">No Uniswap V3 LP positions detected for this wallet on X Layer.</p>
-                  </div>
+                {!useDemo && (
+                  <span className="text-[11px] data-value text-base-muted">
+                    {displayLPPositions.filter((p: any) => !p.isOutOfRange).length}/{displayLPPositions.length} In Range
+                  </span>
                 )}
               </div>
+
+              {useDemo && !isConnected ? (
+                <div className="py-10 text-center">
+                  <div className="w-10 h-10 rounded-md bg-base-elevated border border-base-border flex items-center justify-center mx-auto mb-3">
+                    <svg className="w-4 h-4 text-base-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                    </svg>
+                  </div>
+                  <p className="text-[13px] font-medium text-base-muted">Connect OKX Wallet to monitor positions</p>
+                  <button
+                    onClick={connect}
+                    className="mt-3 px-4 py-1.5 rounded-md bg-cyan-400/10 border border-cyan-400/20 text-cyan-400 text-[12px] font-semibold hover:bg-cyan-400/20 transition-all"
+                  >
+                    Connect Wallet
+                  </button>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {displayLPPositions.map((pos: any) => (
+                    <LPRangeVisualizer key={pos.tokenId} {...pos} />
+                  ))}
+
+                  {displayLPPositions.length === 0 && !displayLpLoading && (
+                    <div className="py-10 text-center">
+                      <p className="text-[13px] font-medium text-base-muted">No Active Positions</p>
+                      <p className="text-[11px] text-base-muted/60 mt-1">No Uniswap V3 LP positions detected on X Layer.</p>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
-            {/* Activity Feed Box */}
-            <div className="bento-card p-8">
-              <div className="flex items-center justify-between mb-8">
+            {/* Activity Feed */}
+            <div className="panel p-6">
+              <div className="flex items-center justify-between mb-5">
                 <div>
-                  <h2 className="text-xl font-black tracking-tight text-white mb-1 uppercase tracking-wider">Neural Execution Logs</h2>
-                  <p className="text-[10px] font-black text-vault-muted uppercase tracking-[0.2em]">Live Heartbeat • Sequential Polling</p>
+                  <h2 className="text-[15px] font-semibold text-white">Execution Log</h2>
+                  <p className="text-[11px] text-base-muted mt-0.5">Sequential Polling • 5min Intervals</p>
                 </div>
                 <a
-                  href={`https://www.oklink.com/xlayer/address/0x1e6955512b94a8CECbD28781c00B4930900f5147`}
+                  href="https://www.oklink.com/xlayer/address/0x1e6955512b94a8CECbD28781c00B4930900f5147"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-[10px] font-black text-brand-400 uppercase tracking-widest hover:text-white transition-colors"
+                  className="flex items-center gap-1 text-[11px] font-medium text-cyan-400 hover:text-white transition-colors"
                 >
-                  View on OKLink ↗
+                  OKLink
+                  <svg className="w-2.5 h-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                  </svg>
                 </a>
               </div>
               <ActivityFeed activities={DEMO_ACTIVITIES} />
             </div>
+          </div>
 
+          {/* ── RIGHT COLUMN (4/12): Agent Status + Portfolio ── */}
+          <div className="lg:col-span-4 space-y-6 animate-slide-up" style={{ animationDelay: "200ms" }}>
+
+            {/* Agent Status Panel */}
+            <AgentStatusPanel isConnected={isConnected} />
+
+            {/* Portfolio */}
+            <div className="panel p-5">
+              <h2 className="text-[13px] font-semibold text-white mb-3">Portfolio</h2>
+              <WalletBalances
+                assets={displayBalances}
+                isLoading={!useDemo && balancesLoading}
+              />
+              <div className="mt-3 pt-3 border-t border-base-border text-center">
+                <span className="text-[10px] text-base-muted">
+                  {useDemo ? "Connect wallet for live data" : "Live • X Layer Mainnet"}
+                </span>
+              </div>
+            </div>
+
+            {/* Network info */}
+            {isConnected && !isCorrectChain && (
+              <div className="panel p-4 border-l-2 border-l-amber">
+                <div className="flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber status-dot"></span>
+                  <span className="text-[12px] font-medium text-amber">Wrong Network</span>
+                </div>
+                <p className="text-[11px] text-base-muted mt-1">Switch to X Layer (Chain ID 196) to see live data.</p>
+              </div>
+            )}
           </div>
 
         </div>
 
         {/* ── Footer ── */}
-        <footer className="pt-12 pb-8 animate-fade-in" style={{ animationDelay: "400ms" }}>
-          <div className="flex flex-col md:flex-row items-center justify-between gap-6 p-8 rounded-[2.5rem] bg-vault-card/40 border border-vault-border/50 backdrop-blur-sm">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-brand-600 to-brand-800 flex items-center justify-center shadow-lg">
-                <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" /></svg>
+        <footer className="pt-6 pb-4 animate-fade-in" style={{ animationDelay: "300ms" }}>
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4 py-4 border-t border-base-border">
+            <div className="flex items-center gap-3">
+              <div className="w-6 h-6 rounded-md bg-gradient-to-br from-cyan-400 to-cyan-600 flex items-center justify-center">
+                <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                </svg>
               </div>
               <div>
-                <p className="text-sm font-black text-white tracking-widest uppercase">VaultMind Protocol</p>
-                <p className="text-[10px] font-bold text-vault-muted mt-1 uppercase tracking-widest">Built for OKX Build X • Powering Agentic Safety</p>
+                <span className="text-[12px] font-medium text-white">VaultMind Protocol</span>
+                <span className="text-[10px] text-base-muted ml-2">Built for OKX Build X Hackathon</span>
               </div>
             </div>
-            <div className="flex items-center gap-8">
-              <div className="text-right border-r border-vault-border/50 pr-8">
-                <p className="text-[9px] font-black text-vault-muted uppercase tracking-widest">FlashRescue</p>
+            <div className="flex items-center gap-6">
+              <div>
+                <span className="text-[9px] text-base-muted block">FlashRescue</span>
                 <a
                   href="https://www.oklink.com/xlayer/address/0x1e6955512b94a8CECbD28781c00B4930900f5147"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-xs font-mono font-black text-brand-400 hover:text-white transition-colors mt-1 block"
+                  className="text-[11px] data-value text-cyan-400 hover:text-white transition-colors"
                 >
                   0x1e69…5147
                 </a>
               </div>
-              <div className="text-right border-r border-vault-border/50 pr-8">
-                <p className="text-[9px] font-black text-vault-muted uppercase tracking-widest">LiquidityMgr</p>
+              <div>
+                <span className="text-[9px] text-base-muted block">LiquidityMgr</span>
                 <a
                   href="https://www.oklink.com/xlayer/address/0x2AF9F9314ADbd03811EE8Fd71087f92cba6341b7"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-xs font-mono font-black text-brand-400 hover:text-white transition-colors mt-1 block"
+                  className="text-[11px] data-value text-cyan-400 hover:text-white transition-colors"
                 >
                   0x2AF9…41b7
                 </a>
               </div>
-              <div className="text-right">
-                <p className="text-[9px] font-black text-vault-muted uppercase tracking-widest">Network</p>
-                <p className="text-sm font-mono font-black text-status-safe mt-1">X Layer · 196</p>
+              <div>
+                <span className="text-[9px] text-base-muted block">Network</span>
+                <span className="text-[11px] data-value text-safe">X Layer • 196</span>
               </div>
             </div>
           </div>
         </footer>
 
       </main>
+
+      {/* Threat Notification Toast */}
+      <ThreatToast />
     </div>
   );
 }

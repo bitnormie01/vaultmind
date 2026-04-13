@@ -8,69 +8,60 @@ interface StatCardProps {
   sub?: string;
   change?: { value: string; positive: boolean };
   icon?: React.ReactNode;
-  accent?: "brand" | "safe" | "warning" | "danger";
+  accent?: "cyan" | "safe" | "amber";
   isLoading?: boolean;
 }
 
-const accentStyles: Record<string, { bg: string; text: string; shadow: string }> = {
-  brand:   { bg: "bg-brand-500/10",    text: "text-brand-400",    shadow: "shadow-brand-500/10" },
-  safe:    { bg: "bg-status-safe/10",   text: "text-status-safe",   shadow: "shadow-status-safe/10" },
-  warning: { bg: "bg-status-warning/10", text: "text-status-warning", shadow: "shadow-status-warning/10" },
-  danger:  { bg: "bg-status-danger/10",  text: "text-status-danger",  shadow: "shadow-status-danger/10" },
+const accentMap: Record<string, { border: string; text: string; glow: string }> = {
+  cyan:  { border: "border-l-cyan-400", text: "text-cyan-400", glow: "bg-cyan-400" },
+  safe:  { border: "border-l-safe",     text: "text-safe",     glow: "bg-safe" },
+  amber: { border: "border-l-amber",    text: "text-amber",    glow: "bg-amber" },
 };
 
-export function StatCard({ label, value, sub, change, icon, accent = "brand", isLoading }: StatCardProps) {
-  const styles = accentStyles[accent];
+export function StatCard({ label, value, sub, change, icon, accent = "cyan", isLoading }: StatCardProps) {
+  const style = accentMap[accent];
 
   if (isLoading) {
     return (
-      <div className="bento-card p-6 min-h-[160px] animate-pulse">
-        <div className="h-3 w-24 bg-vault-subtle/30 rounded-full" />
-        <div className="h-10 w-32 bg-vault-subtle/30 rounded-xl mt-6" />
-        <div className="h-3 w-16 bg-vault-subtle/30 rounded-full mt-4" />
+      <div className="metric-card p-5 border-l-2 border-l-base-subtle animate-pulse">
+        <div className="h-3 w-20 bg-base-subtle rounded mb-4"></div>
+        <div className="h-8 w-28 bg-base-subtle rounded"></div>
       </div>
     );
   }
 
   return (
-    <div className="bento-card p-6 flex flex-col justify-between group">
-      {/* Background Glow */}
-      <div className={`absolute -top-12 -right-12 w-24 h-24 rounded-full blur-[40px] opacity-20 transition-all duration-500 group-hover:scale-150 group-hover:opacity-40 ${styles.bg}`} />
-      
-      <div className="relative">
-        <div className="flex items-center justify-between mb-1">
-          <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-vault-muted/80">{label}</span>
-          {icon && (
-            <div className={`p-2 rounded-xl border border-vault-border/50 bg-vault-surface/50 ${styles.text}`}>
-              {icon}
-            </div>
-          )}
-        </div>
-
-        <div className="flex items-baseline gap-2 mt-2">
-            <h3 className={`text-4xl font-bold font-mono tracking-tight ${styles.text} tabular-nums`}>
-                {value}
-            </h3>
-        </div>
-
-        {sub && (
-          <p className="text-[11px] font-medium text-vault-muted mt-2 flex items-center gap-1.5 leading-relaxed">
-            <span className="w-1 h-1 rounded-full bg-vault-muted/40" />
-            {sub}
-          </p>
+    <div className={`metric-card p-5 border-l-2 ${style.border}`}>
+      {/* Label */}
+      <div className="flex items-center justify-between mb-1">
+        <span className="data-label">{label}</span>
+        {icon && (
+          <div className={`${style.text} opacity-40`}>
+            {icon}
+          </div>
         )}
       </div>
 
-      {change && (
-        <div className={`mt-4 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold border ${
-          change.positive 
-            ? "bg-status-safe/10 border-status-safe/20 text-status-safe" 
-            : "bg-status-danger/10 border-status-danger/20 text-status-danger"
-        }`}>
-          <span>{change.positive ? "↑" : "↓"}</span>
-          <span className="tracking-wide">{(change.value)}</span>
-        </div>
-      )}
+      {/* Value */}
+      <div className="mt-2">
+        <span className={`text-2xl font-semibold data-value ${style.text}`}>
+          {value}
+        </span>
+      </div>
+
+      {/* Sub + Change */}
+      <div className="flex items-center justify-between mt-3">
+        {sub && (
+          <span className="text-[10px] font-medium text-base-muted">{sub}</span>
+        )}
+        {change && (
+          <span className={`text-[10px] font-medium data-value ${
+            change.positive ? "text-safe" : "text-danger"
+          }`}>
+            {change.positive ? "↑" : "↓"} {change.value}
+          </span>
+        )}
+      </div>
     </div>
   );
 }
@@ -93,20 +84,17 @@ interface WalletBalancesProps {
 export function WalletBalances({ assets, isLoading }: WalletBalancesProps) {
   if (isLoading) {
     return (
-      <div className="space-y-3">
-        {[1, 2, 3].map(i => (
-          <div key={i} className="flex items-center justify-between p-4 rounded-3xl bg-vault-card/40 border border-vault-border animate-pulse">
-            <div className="flex items-center gap-4">
-              <div className="w-10 h-10 rounded-2xl bg-vault-subtle/30" />
-              <div className="space-y-2">
-                <div className="h-3 w-16 bg-vault-subtle/30 rounded-full" />
-                <div className="h-2 w-24 bg-vault-subtle/30 rounded-full" />
+      <div className="space-y-2">
+        {[1, 2].map(i => (
+          <div key={i} className="flex items-center justify-between p-3 rounded-md bg-base-elevated border border-base-border animate-pulse">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-md bg-base-subtle"></div>
+              <div className="space-y-1.5">
+                <div className="h-3 w-12 bg-base-subtle rounded"></div>
+                <div className="h-2 w-20 bg-base-subtle rounded"></div>
               </div>
             </div>
-            <div className="space-y-2 text-right">
-              <div className="h-3 w-20 bg-vault-subtle/30 rounded-full ml-auto" />
-              <div className="h-2 w-10 bg-vault-subtle/30 rounded-full ml-auto" />
-            </div>
+            <div className="h-3 w-16 bg-base-subtle rounded"></div>
           </div>
         ))}
       </div>
@@ -114,30 +102,27 @@ export function WalletBalances({ assets, isLoading }: WalletBalancesProps) {
   }
 
   return (
-    <div className="grid grid-cols-1 gap-2.5">
+    <div className="space-y-1.5">
       {assets.map((asset) => (
         <div
           key={asset.symbol}
-          className="group flex items-center justify-between p-4 rounded-3xl bg-vault-card/40 border border-vault-border hover:border-brand-500/30 hover:bg-vault-card/60 transition-all duration-300"
+          className="flex items-center justify-between p-3 rounded-md bg-base-elevated/50 border border-base-border hover:border-base-border-2 transition-all duration-200"
         >
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
             <div
-              className="w-11 h-11 rounded-2xl flex items-center justify-center text-sm font-bold text-white shadow-xl transform group-hover:scale-105 group-hover:-rotate-3 transition-all duration-500"
-              style={{ 
-                background: `linear-gradient(135deg, ${asset.color}, ${asset.color}dd)`,
-                boxShadow: `0 8px 16px -4px ${asset.color}44` 
-              }}
+              className="w-8 h-8 rounded-md flex items-center justify-center text-[10px] font-bold text-white"
+              style={{ background: asset.color }}
             >
               {asset.symbol.slice(0, 2)}
             </div>
             <div>
-              <p className="text-sm font-bold text-white tracking-tight leading-none">{asset.symbol}</p>
-              <p className="text-[10px] font-bold text-vault-muted uppercase tracking-widest mt-1.5 opacity-60">{asset.name}</p>
+              <p className="text-[13px] font-medium text-white">{asset.symbol}</p>
+              <p className="text-[10px] text-base-muted">{asset.name}</p>
             </div>
           </div>
           <div className="text-right">
-            <p className="text-sm font-mono font-bold text-white">{asset.balance}</p>
-            <p className="text-[11px] font-bold text-vault-muted/70 mt-1">${asset.usdValue}</p>
+            <p className="text-[13px] font-medium data-value text-white">{asset.balance}</p>
+            <p className="text-[10px] text-base-muted">${asset.usdValue}</p>
           </div>
         </div>
       ))}
