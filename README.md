@@ -19,7 +19,12 @@
 
 ## 🎥 Demo Video
 
-<video src="https://github.com/bitnormie01/vaultmind/assets/demo-video.mp4" controls></video>
+<div align="center">
+  <video width="80%" controls>
+    <source src="./demo-video.mp4" type="video/mp4">
+    Your browser does not support the video tag. <a href="./demo-video.mp4">Download the video</a>.
+  </video>
+</div>
 
 <br/>
 
