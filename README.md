@@ -19,7 +19,7 @@
 
 ## 🎥 Demo Video
 
-https://github.com/user-attachments/assets/demo-video.mp4
+https://github.com/bitnormie01/vaultmind/raw/main/demo-video.mp4
 
 <br/>
 
