@@ -43,7 +43,19 @@ export function useWallet(): WalletState {
   const handleConnect = () => {
     setLocalError(null);
     try {
-      connect({ connector: injected() });
+      // Provide an explicit target so wagmi hooks straight into window.okxwallet
+      // This bypasses any confusion with window.ethereum or MetaMask taking priority.
+      connect({ 
+        connector: injected({ 
+          target() {
+            return {
+              id: 'okxWallet',
+              name: 'OKX Wallet',
+              provider: typeof window !== 'undefined' ? (window as any).okxwallet : undefined
+            }
+          }
+        }) 
+      });
     } catch (err) {
       setLocalError(err instanceof Error ? err.message : "Connection failed");
     }
