@@ -154,6 +154,7 @@ VaultMind is built natively on top of the **OKX OnchainOS** skill ecosystem. Eac
 ## 🛡️ Cross-Track Synergy: Guardian Protocol Integration
 
 VaultMind achieves true ecosystem composability by natively integrating the **Guardian Protocol** (our companion submission in the **Skill Arena**) as its core security middleware.
+**Guardian Protocol:** [Repository](https://github.com/bitnormie01/guardian-protocol)
 
 Instead of relying on basic API wrappers, VaultMind uses the Guardian Protocol evaluating engine to intercept every transaction pre-execution. This unified pipeline performs:
 1. Multi-layered token honeypot & blacklist scanning.
