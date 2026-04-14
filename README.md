@@ -74,7 +74,7 @@ Every transaction is **simulated before broadcast** via the OKX OnchainOS Gatewa
 
 ## Repository Structure
 
-> **GitHub Repository:** [https://github.com/anujkumar2o/vaultmind](https://github.com/anujkumar2o/vaultmind)
+> **GitHub Repository:** [https://github.com/bitnormie01/vaultmind](https://github.com/bitnormie01/vaultmind)
 
 ```
 VaultMind/
