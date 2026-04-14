@@ -4,7 +4,7 @@
 
 ##  Elevator Pitch
 
-**GitHub Repository:** [https://github.com/anujkumar2o/vaultmind](https://github.com/anujkumar2o/vaultmind)
+**GitHub Repository:** [https://github.com/bitnormie01/vaultmind](https://github.com/bitnormie01/vaultmind)
 
 While other AI Agents are busy chatting with users or optimizing yields by basis points, **VaultMind attacks the hardest problem in DeFi: Catastrophic Loss.** 
 
