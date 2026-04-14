@@ -19,12 +19,7 @@
 
 ## 🎥 Demo Video
 
-<div align="center">
-  <video width="80%" controls>
-    <source src="./demo-video.mp4" type="video/mp4">
-    Your browser does not support the video tag. <a href="./demo-video.mp4">Download the video</a>.
-  </video>
-</div>
+[![VaultMind Demo](https://img.youtube.com/vi/CcIVuGzl41Q/maxresdefault.jpg)](https://youtu.be/CcIVuGzl41Q)
 
 <br/>
 
