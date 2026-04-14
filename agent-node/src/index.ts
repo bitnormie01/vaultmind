@@ -29,6 +29,7 @@ import { OKXDexClient } from "./onchainos/dex.js";
 import { CognitiveEngine } from "./ai/cognitiveEngine.js";
 import { X402PaymentProtocol } from "./onchainos/x402.js";
 import { execCommand } from "./utils/cli.js";
+import { startApiServer, updateAgentStatus, pushActivity } from "./server.js";
 
 dotenv.config();
 
@@ -204,7 +205,12 @@ class VaultMindAgent {
   // ─── Agent Lifecycle ─────────────────────────────────────────────────
 
   async start(): Promise<void> {
+    // Start the status API server BEFORE the agent loop
+    startApiServer(parseInt(process.env.API_PORT || "4000", 10));
+
     this.state.isRunning = true;
+    updateAgentStatus({ isRunning: true });
+
     this.logger.info("🧠 VaultMind Agent starting...", {
       chainId:          CONFIG.chainId,
       wallet:           this.account.address,
@@ -215,16 +221,33 @@ class VaultMindAgent {
       liqManager:       CONFIG.contracts.liquidityManager || "NOT CONFIGURED",
     });
 
+    pushActivity({
+      type: "MONITORING",
+      status: "info",
+      description: "VaultMind Agent Online",
+      detail: `Monitoring wallet on X Layer (Chain ID ${CONFIG.chainId}) • Poll interval: 5min`,
+    });
+
     while (this.state.isRunning) {
       try {
         await this.executeCycle();
         this.state.consecutiveErrors = 0;
+        updateAgentStatus({ ...this.state });
       } catch (error) {
         this.state.consecutiveErrors++;
         this.logger.error("❌ Agent cycle error", {
           error: error instanceof Error ? error.message : String(error),
           consecutiveErrors: this.state.consecutiveErrors,
         });
+
+        pushActivity({
+          type: "ERROR",
+          status: "error",
+          description: "Agent Cycle Error",
+          detail: error instanceof Error ? error.message : String(error),
+        });
+
+        updateAgentStatus({ ...this.state });
 
         // Circuit breaker: 5 consecutive errors → pause 60s
         if (this.state.consecutiveErrors >= 5) {
@@ -429,6 +452,13 @@ class VaultMindAgent {
         gatewayReason: gatewaySimResult.reason,
         totalDropped: this.state.droppedBySimulation,
       });
+      pushActivity({
+        type: "SIMULATION_DROPPED",
+        status: "dropped",
+        description: "Fail-Closed: Pre-Execution Simulation Failed",
+        detail: `${action.type} blocked. Security: ${simulation.reason || "failed"}. Gateway: ${gatewaySimResult.reason || "failed"}.`,
+      });
+      updateAgentStatus({ ...this.state });
       return;
     }
 
@@ -478,15 +508,37 @@ class VaultMindAgent {
       if (receipt.status === 'success') {
         if (action.type === "FLASH_RESCUE") {
           this.state.totalRescues++;
+          pushActivity({
+            type: "FLASH_RESCUE",
+            status: "success",
+            description: "Emergency Flash Rescue Executed",
+            detail: `Health Factor rescued via OKX DEX liquidity routing. Block #${receipt.blockNumber}`,
+            txHash: hash,
+          });
         } else {
           this.state.totalRebalances++;
+          pushActivity({
+            type: "LP_REBALANCE",
+            status: "success",
+            description: "Concentrated LP Range Optimization",
+            detail: `Position rebalanced to optimal tick range. Block #${receipt.blockNumber}`,
+            txHash: hash,
+          });
         }
+        updateAgentStatus({ ...this.state });
         this.logger.info(`🎯 ${action.type} complete (Block: ${receipt.blockNumber})`, {
           totalRescues:    this.state.totalRescues,
           totalRebalances: this.state.totalRebalances,
         });
       } else {
         this.logger.error(`❌ Transaction reverted on-chain: ${hash}`);
+        pushActivity({
+          type: action.type,
+          status: "error",
+          description: `${action.type} Reverted On-Chain`,
+          detail: `Transaction ${hash} was reverted. Check X Layer explorer for details.`,
+          txHash: hash,
+        });
       }
     } catch (error) {
       this.logger.error(`Failed to broadcast transaction: ${error instanceof Error ? error.message : String(error)}`);
@@ -544,6 +596,13 @@ class VaultMindAgent {
       droppedBySimulation: this.state.droppedBySimulation,
     });
     this.state.isRunning = false;
+    updateAgentStatus({ isRunning: false, ...this.state });
+    pushActivity({
+      type: "MONITORING",
+      status: "info",
+      description: "Agent Shutting Down",
+      detail: `Total rescues: ${this.state.totalRescues} | Rebalances: ${this.state.totalRebalances} | Dropped: ${this.state.droppedBySimulation}`,
+    });
   }
 
   private sleep(ms: number): Promise<void> {
