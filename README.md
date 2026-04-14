@@ -170,17 +170,16 @@ This integration proves that our Skill Arena capability is highly modular, and t
 VaultMind is fully deployed and active. 
 To satisfy the "Most Active On-Chain Agent" scoring criteria while prioritizing absolute capital efficiency and security, we have engineered an autonomous heartbeat module that safely cycles through the X Layer **Mainnet `okx-onchain-gateway`**.
 
-This proves that our Mainnet logic is robust: in recent live-fire testing on X Layer Mainnet, VaultMind successfully intercepted and **blocked** 100% of risky trades where RPC latency or pool manipulation was detected, enforcing a perfect fail-closed safety model.
+
 
 - **Agentic Wallet:** [0x6e9fb08755b837388a36ced22f26ed64240fb29c](https://www.oklink.com/xlayer/address/0x6e9fb08755b837388a36ced22f26ed64240fb29c)
 - **VaultMindCore (Mainnet):** [0xDDc90434a8DD095ac6B5046fFbC4BD5d5f477306](https://www.oklink.com/xlayer/address/0xDDc90434a8DD095ac6B5046fFbC4BD5d5f477306)
 - **Flash Rescue (Mainnet):** [0x1e6955512b94a8CECbD28781c00B4930900f5147](https://www.oklink.com/xlayer/address/0x1e6955512b94a8CECbD28781c00B4930900f5147)
 - **Liquidity Manager (Mainnet):** [0x2AF9F9314ADbd03811EE8Fd71087f92cba6341b7](https://www.oklink.com/xlayer/address/0x2AF9F9314ADbd03811EE8Fd71087f92cba6341b7)
-- **Live Fire Evidence (Mainnet):** [`LIVE_FIRE_LOG.txt`](./LIVE_FIRE_LOG.txt)
 - **Mainnet Deployment Hash:** [0x4aee4cbc6f76152f86f1b96e75a3de7103af18c95d3cf86987c671377303f278](https://www.oklink.com/xlayer/tx/0x4aee4cbc6f76152f86f1b96e75a3de7103af18c95d3cf86987c671377303f278)
 - **Proof of Agentic Activity (X Layer):** [0x9dd370afe26da3ae53c2947534cb173efc634809cd16928884d7201161966ba3](https://www.oklink.com/xlayer/tx/0x9dd370afe26da3ae53c2947534cb173efc634809cd16928884d7201161966ba3)
 
-*(Judges: See `LIVE_FIRE_LOG.txt` for real terminal output showing the agent defending the wallet on X Layer Mainnet!)*
+
 
 ---
 
