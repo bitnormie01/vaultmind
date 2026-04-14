@@ -2,8 +2,8 @@
 
 import React from "react";
 
-type ActionType = "FLASH_RESCUE" | "LP_REBALANCE" | "SIMULATION_DROPPED" | "MONITORING";
-type Status = "success" | "pending" | "dropped" | "info";
+type ActionType = "FLASH_RESCUE" | "LP_REBALANCE" | "SIMULATION_DROPPED" | "MONITORING" | "ERROR";
+type Status = "success" | "pending" | "dropped" | "info" | "error";
 
 interface Activity {
   id: string;
@@ -54,6 +54,14 @@ const TYPE_META: Record<ActionType, { icon: React.ReactNode; label: string }> = 
     ),
     label: "Monitoring",
   },
+  ERROR: {
+    icon: (
+      <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+      </svg>
+    ),
+    label: "Error",
+  },
 };
 
 const STATUS_STYLES: Record<Status, { dot: string; text: string; border: string }> = {
@@ -61,6 +69,7 @@ const STATUS_STYLES: Record<Status, { dot: string; text: string; border: string 
   pending: { dot: "bg-cyan-400", text: "text-cyan-400", border: "border-cyan-400/15" },
   dropped: { dot: "bg-amber",   text: "text-amber",   border: "border-amber/15" },
   info:    { dot: "bg-base-muted", text: "text-base-muted", border: "border-base-border" },
+  error:   { dot: "bg-danger",  text: "text-danger",  border: "border-danger/15" },
 };
 
 function timeAgo(date: Date): string {
