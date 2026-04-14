@@ -17,6 +17,12 @@
 
 <br/>
 
+## 🎥 Demo Video
+
+https://github.com/user-attachments/assets/demo-video.mp4
+
+<br/>
+
 ## Problem
 
 In decentralized finance, **positions die in silence.** A health factor drops below 1.0 while you sleep, and Aave's liquidation bots seize 5–15% of your collateral. Your Uniswap V3 LP drifts out of range, earning zero fees while the market moves. By the time you react, the damage is done.
