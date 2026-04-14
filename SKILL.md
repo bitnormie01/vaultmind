@@ -13,7 +13,7 @@ VaultMind — Autonomous DeFi Position Guardian
 X Layer Arena
 
 ## Contact
-hello@vaultmind.com
+TG: @bitnormie01
 
 ## Summary
 VaultMind is an autonomous AI agent that continuously monitors your Agentic Wallet on **X Layer** and defends your DeFi positions in real-time through two core mechanisms: Flash Rescue (Aave liquidation prevention) and Liquidity Guardian (Uniswap V3 LP rebalancing).
